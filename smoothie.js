@@ -294,6 +294,7 @@
    *   tooltipFormatter: SmoothieChart.tooltipFormatter, // formatter function for tooltip text
    *   doNotDisplaySavedData: false,             // if we save old data by using the maxDataSetLength property but do not want to render from 
    *   nonRealtimeData: false,                   // use time of latest data as current time
+   *   showDataAt: 1,                            // when combined with maxDataSetLength, doNotDisplayOldData can show 
    *   responsive: false,                        // whether the chart should adapt to the size of the canvas
    *   limitFPS: 0                         // maximum frame rate the chart will render at, in FPS (zero means no limit)
    * }
@@ -342,6 +343,7 @@
     maxDataSetLength: 2,
     scrollBackwards: false,
     doNotDisplaySavedData: false,
+    showDataAt: 1,
     grid: {
       fillStyle: '#000000',
       strokeStyle: '#777777',
@@ -625,13 +627,14 @@
       this.frame = SmoothieChart.AnimateCompatibility.requestAnimationFrame(function() {
         if(this.options.nonRealtimeData){
            var dateZero = new Date(0);
+           var indexToCheck = (this.showDataAt * dataSet.length) - 1;
            // find the data point with the latest timestamp          
            var maxTimeStamp = this.seriesSet.reduce(function(max, series){
              var dataSet = series.timeSeries.data;
              if(dataSet && dataSet.length > 0)
              {
               // timestamp corresponds to element 0 of the data point
-              var lastDataTimeStamp = dataSet[dataSet.length-1][0];
+              var lastDataTimeStamp = dataSet[indexToCheck][0];
               max = max > lastDataTimeStamp ? max : lastDataTimeStamp;
              }
              return max;
