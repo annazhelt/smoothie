@@ -231,20 +231,11 @@
     // We must always keep one expired data point as we need this to draw the
     // line that comes into the chart from the left, but any points prior to that can be removed.
       var removeCount = 0;
-      var numCurrDataPoints = 0;
       while (this.data.length - removeCount >= maxDataSetLength && this.data[removeCount + 1][0] < oldestValidTime) {
-        if(this.data[removeCount + 1][0] >= oldestValidTime){
-          numCurrDataPoints++;
-        }
         removeCount++;
       }
       if (removeCount !== 0) {
         this.data.splice(0, removeCount);
-      }
-      if(this.options.doNotDisplaySavedData){
-        return this.data.length - numCurrDataPoints;
-      } else {
-        return 0;
       }
   };
 
@@ -669,7 +660,7 @@
     }
   };
 
-  SmoothieChart.prototype.updateValueRange = function() {
+  SmoothieChart.prototype.ƒmaxValue = function() {
     // Calculate the current scale of the chart, from all time series.
     var chartOptions = this.options,
         chartMaxValue = Number.NaN,
@@ -868,8 +859,8 @@
           seriesOptions = this.seriesSet[d].options;
 
       // Delete old data that's moved off the left of the chart.
-      var start_index = timeSeries.dropOldData(oldestValidTime, chartOptions.maxDataSetLength);
-
+      timeSeries.dropOldData(oldestValidTime, chartOptions.maxDataSetLength);
+      var start_index = 0;
       // Set style for this dataSet.
       context.lineWidth = seriesOptions.lineWidth;
       context.strokeStyle = seriesOptions.strokeStyle;
