@@ -230,13 +230,22 @@
   TimeSeries.prototype.dropOldData = function(oldestValidTime, maxDataSetLength) {
     // We must always keep one expired data point as we need this to draw the
     // line that comes into the chart from the left, but any points prior to that can be removed.
-    var removeCount = 0;
-    while (this.data.length - removeCount >= maxDataSetLength && this.data[removeCount + 1][0] < oldestValidTime) {
-      removeCount++;
-    }
-    if (removeCount !== 0) {
-      this.data.splice(0, removeCount);
-    }
+      var removeCount = 0;
+      var numCurrDataPoints = 0;
+      while (this.data.length - removeCount >= maxDataSetLength && this.data[removeCount + 1][0] < oldestValidTime) {
+        if(this.data[removeCount + 1][0] >= oldestValidTime){
+          numCurrDataPoints++;
+        }
+        removeCount++;
+      }
+      if (removeCount !== 0) {
+        this.data.splice(0, removeCount);
+      }
+      if(this.options.doNotDisplaySavedData){
+        return this.data.length - numCurrDataPoints;
+      } else {
+        return 0;
+      }
   };
 
   /**
@@ -292,6 +301,7 @@
    *     strokeStyle: '#BBBBBB'
    *   },
    *   tooltipFormatter: SmoothieChart.tooltipFormatter, // formatter function for tooltip text
+   *   doNotDisplaySavedData: false,             // if we save old data by using the maxDataSetLength property but do not want to render from 
    *   nonRealtimeData: false,                   // use time of latest data as current time
    *   responsive: false,                        // whether the chart should adapt to the size of the canvas
    *   limitFPS: 0                         // maximum frame rate the chart will render at, in FPS (zero means no limit)
@@ -340,6 +350,7 @@
     scaleSmoothing: 0.125,
     maxDataSetLength: 2,
     scrollBackwards: false,
+    doNotDisplaySavedData: false,
     grid: {
       fillStyle: '#000000',
       strokeStyle: '#777777',
@@ -857,7 +868,7 @@
           seriesOptions = this.seriesSet[d].options;
 
       // Delete old data that's moved off the left of the chart.
-      timeSeries.dropOldData(oldestValidTime, chartOptions.maxDataSetLength);
+      var start_index = timeSeries.dropOldData(oldestValidTime, chartOptions.maxDataSetLength);
 
       // Set style for this dataSet.
       context.lineWidth = seriesOptions.lineWidth;
@@ -866,11 +877,11 @@
       context.beginPath();
       // Retain lastX, lastY for calculating the control points of bezier curves.
       var firstX = 0, lastX = 0, lastY = 0;
-      for (var i = 0; i < dataSet.length && dataSet.length !== 1; i++) {
+      for (var i = start_index; i < dataSet.length && dataSet.length !== 1; i++) {
         var x = timeToXPixel(dataSet[i][0]),
             y = valueToYPixel(dataSet[i][1]);
 
-        if (i === 0) {
+        if (i === start_index) {
           firstX = x;
           context.moveTo(x, y);
         } else {
