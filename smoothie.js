@@ -860,15 +860,27 @@
 
       // Delete old data that's moved off the left of the chart.
       timeSeries.dropOldData(oldestValidTime, chartOptions.maxDataSetLength);
-      var start_index = 0;
+
       // Set style for this dataSet.
       context.lineWidth = seriesOptions.lineWidth;
       context.strokeStyle = seriesOptions.strokeStyle;
       // Draw the line...
       context.beginPath();
+
+      // set start index as the closest data point to oldestValidTime - 1. 
+      // use binary search
+      var startIndex = 0;
+      var endIndexPlusOne = dataSet.length;
+      if(this.doNotDisplaySavedData){
+        // binary search for the oldestValidTime
+        startIndex = Util.binarySearch(dataSet, oldestValidTime);
+        // binary search for time
+        endIndexPlusOne = Util.binarySearch(dataSet, time) + 1;
+      }
+
       // Retain lastX, lastY for calculating the control points of bezier curves.
       var firstX = 0, lastX = 0, lastY = 0;
-      for (var i = start_index; i < dataSet.length && dataSet.length !== 1; i++) {
+      for (var i = start_index; i < endIndexPlusOne && endIndexPlusOne !== 1; i++) {
         var x = timeToXPixel(dataSet[i][0]),
             y = valueToYPixel(dataSet[i][1]);
 
@@ -915,7 +927,7 @@
         lastX = x; lastY = y;
       }
 
-      if (dataSet.length > 1) {
+      if (endIndexPlusOne > 1) {
         if (seriesOptions.fillStyle) {
           // Close up the fill region.
           context.lineTo(dimensions.width + seriesOptions.lineWidth + 1, lastY);
